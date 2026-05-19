@@ -5,9 +5,14 @@ import com.example.demo.model.Role;
 import com.example.demo.model.User;
 import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/admin")
@@ -32,7 +37,7 @@ public class AdminsController {
     }
 
     @PostMapping("/save")
-    public String saveUser(@ModelAttribute User user, @RequestParam(required = false) String roleName) {
+    public String saveUser(@ModelAttribute User user, @RequestParam(value = "rolesList",required = false) String roleName) {
         if (roleName != null && !roleName.isEmpty()) {
             Role role = userDao.getRoleByName(roleName);
             if (role != null) {
@@ -42,15 +47,22 @@ public class AdminsController {
         userService.saveOrUpdateUser(user);
         return "redirect:/admin";
     }
-
-    @GetMapping("/edit/{id}")
-    public String editUserForm(@PathVariable Long id, Model model) {
-        model.addAttribute("user", userService.getUserById(id));
-        return "admin/user-form";
+    @PostMapping("/edit/{id}")
+    public String updateUser(@ModelAttribute("user") User user,
+                             @RequestParam(value = "rolesList", required = false) List<String> roles) {
+        if (roles != null && !roles.isEmpty()) {
+            Set<Role> roleSet = new HashSet<>();
+            for (String roleName : roles) {
+                roleSet.add(userService.getRoleByName(roleName));
+            }
+            user.setRoles(roleSet);
+        }
+        userService.saveOrUpdateUser(user);
+        return "redirect:/admin";
     }
 
-    @GetMapping("/delete/{id}")
-    public String deleteUser(@PathVariable Long id) {
+    @PostMapping("/delete")
+    public String deleteUser(@ModelAttribute(name="id" )Long id) {
         userService.deleteUserById(id);
         return "redirect:/admin";
     }
