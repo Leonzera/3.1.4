@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <meta charset="UTF-8">
     <title>Admin panel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -45,7 +47,6 @@
             </ul>
 
             <div class="tab-content" id="myTabContent">
-
                 <div class="tab-pane fade show active" id="users-table" role="tabpanel">
                     <div class="card border-top-0 rounded-bottom">
                         <div class="card-header h5">All users</div>
@@ -61,91 +62,7 @@
                                     <th>Delete</th>
                                 </tr>
                                 </thead>
-                                <tbody>
-                                <tr th:each="user : ${users}">
-                                    <td th:text="${user.id}"></td>
-                                    <td th:text="${user.username}"></td>
-                                    <td th:text="${user.email}"></td>
-                                    <td>
-                                        <span th:each="role : ${user.roles}" th:text="${#strings.replace(role.name, 'ROLE_', '') + ' '}"></span>
-                                    </td>
-                                    <td>
-                                        <button type="button" class="btn btn-info text-white" data-bs-toggle="modal" th:data-bs-target="'#editModal' + ${user.id}">Edit</button>
-                                    </td>
-                                    <td>
-                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" th:data-bs-target="'#deleteModal' + ${user.id}">Delete</button>
-                                    </td>
-
-                                    <div class="modal fade" th:id="'editModal' + ${user.id}" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Edit user</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <form th:action="@{/admin/edit/{id}(id=${user.id})}" method="post">
-                                                    <div class="modal-body text-center w-50 mx-auto">
-                                                        <label class="form-label fw-bold mt-2">ID</label>
-                                                        <input type="text" class="form-control" name="id" th:value="${user.id}" readonly>
-
-                                                        <label class="form-label fw-bold mt-2"> name</label>
-                                                        <input type="text" class="form-control" name="username" th:value="${user.username}">
-
-                                                        <label class="form-label fw-bold mt-2">Email</label>
-                                                        <input type="email" class="form-control" name="email" th:value="${user.email}">
-
-                                                        <label class="form-label fw-bold mt-2">Password</label>
-                                                        <input type="password" class="form-control" name="password"th:value="${user.password}">
-
-                                                        <label class="form-label fw-bold mt-2">Role</label>
-                                                        <select class="form-select" size="2" name="rolesList" multiple required>
-                                                            <option value="ROLE_ADMIN">ADMIN</option>
-                                                            <option value="ROLE_USER">USER</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                        <button type="submit" class="btn btn-primary">Edit</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="modal fade" th:id="'deleteModal' + ${user.id}" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Delete user</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <form th:action="@{/admin/delete}" method="post">
-                                                    <div class="modal-body text-center w-50 mx-auto">
-                                                        <input type="hidden" name="id" th:value="${user.id}">
-
-                                                        <label class="form-label fw-bold mt-2">ID</label>
-                                                        <input type="text" class="form-control" th:value="${user.id}" disabled>
-
-                                                        <label class="form-label fw-bold mt-2">First name</label>
-                                                        <input type="text" class="form-control" th:value="${user.username}" disabled>
-
-                                                        <label class="form-label fw-bold mt-2">Email</label>
-                                                        <input type="email" class="form-control" th:value="${user.email}" disabled>
-
-                                                        <label class="form-label fw-bold mt-2">Role</label>
-                                                        <select class="form-select" size="2" disabled>
-                                                            <option th:each="role : ${user.roles}" th:text="${#strings.replace(role.name, 'ROLE_', '')}"></option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                        <button type="submit" class="btn btn-danger">Delete</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </tr>
+                                <tbody id="usersTableBody">
                                 </tbody>
                             </table>
                         </div>
@@ -156,8 +73,7 @@
                     <div class="card border-top-0 rounded-bottom">
                         <div class="card-header h5">Add new user</div>
                         <div class="card-body d-flex justify-content-center">
-                            <form th:action="@{/admin/save}" method="post" class="text-center w-25">
-
+                            <form id="newUserForm" class="text-center w-25">
                                 <label class="form-label fw-bold mt-2">First name</label>
                                 <input type="text" class="form-control bg-warning bg-opacity-25" name="username" required>
 
@@ -184,6 +100,236 @@
     </div>
 </div>
 
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit user</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editForm">
+                <div class="modal-body text-center w-50 mx-auto">
+                    <label class="form-label fw-bold mt-2">ID</label>
+                    <input type="text" class="form-control" name="id" readonly>
+
+                    <label class="form-label fw-bold mt-2">Name</label>
+                    <input type="text" class="form-control" name="username">
+
+                    <label class="form-label fw-bold mt-2">Email</label>
+                    <input type="email" class="form-control" name="email">
+
+                    <label class="form-label fw-bold mt-2">Password</label>
+                    <input type="password" class="form-control" name="password">
+
+                    <label class="form-label fw-bold mt-2">Role</label>
+                    <select class="form-select" size="2" name="rolesList" multiple required>
+                        <option value="ROLE_ADMIN">ADMIN</option>
+                        <option value="ROLE_USER">USER</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Edit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete user</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="deleteForm">
+                <div class="modal-body text-center w-50 mx-auto">
+                    <input type="hidden" name="id">
+
+                    <label class="form-label fw-bold mt-2">ID</label>
+                    <input type="text" class="form-control" name="idDisplay" disabled>
+
+                    <label class="form-label fw-bold mt-2">Name</label>
+                    <input type="text" class="form-control" name="username" disabled>
+
+                    <label class="form-label fw-bold mt-2">Email</label>
+                    <input type="email" class="form-control" name="email" disabled>
+
+                    <label class="form-label fw-bold mt-2">Role</label>
+                    <select class="form-select" size="2" name="rolesList" disabled>
+                        <option value="ROLE_ADMIN">ADMIN</option>
+                        <option value="ROLE_USER">USER</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // 1. Настройка CSRF токена для безопасных POST/PUT/DELETE запросов
+    const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+    const requestHeaders = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    };
+    if (csrfHeader && csrfToken) {
+        requestHeaders[csrfHeader] = csrfToken;
+    }
+
+    // URL вашего REST контроллера (убедитесь, что он совпадает с вашим @RequestMapping)
+    const API_URL = '/api/admin/users';
+
+    // 2. Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', loadTable);
+
+    // Функция отрисовки таблицы
+    async function loadTable() {
+        const response = await fetch(API_URL);
+        const users = await response.json();
+        const tbody = document.getElementById('usersTableBody');
+        tbody.innerHTML = ''; // Очищаем старые данные
+
+        users.forEach(user => {
+            // Форматируем вывод ролей без "ROLE_"
+            const rolesStr = user.roles.map(r => r.name.replace('ROLE_', '')).join(' ');
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${user.id}</td>
+                <td>${user.username}</td>
+                <td>${user.email}</td>
+                <td>${rolesStr}</td>
+                <td>
+                    <button class="btn btn-info text-white" onclick="openEditModal(${user.id})">Edit</button>
+                </td>
+                <td>
+                    <button class="btn btn-danger" onclick="openDeleteModal(${user.id})">Delete</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 3. Добавление пользователя (POST)
+    document.getElementById('newUserForm').addEventListener('submit', async function(e) {
+        e.preventDefault(); // Останавливаем перезагрузку страницы
+
+        const form = e.target;
+        const newUser = {
+            username: form.username.value,
+            email: form.email.value,
+            password: form.password.value,
+            roles: getSelectedRoles(form.rolesList)
+        };
+
+        await fetch(API_URL, {
+            method: 'POST',
+            headers: requestHeaders,
+            body: JSON.stringify(newUser)
+        });
+
+        form.reset(); // Очищаем форму
+        document.getElementById('users-table-tab').click(); // Переходим на вкладку с таблицей
+        loadTable(); // Обновляем таблицу без перезагрузки
+    });
+
+    // 4. Заполнение и открытие модалки Edit
+    async function openEditModal(id) {
+        const response = await fetch(`${API_URL}/${id}`);
+        const user = await response.json();
+
+        const form = document.getElementById('editForm');
+        form.id.value = user.id;
+        form.username.value = user.username;
+        form.email.value = user.email;
+        form.password.value = ''; // Всегда пустой при открытии
+
+        // Выделение ролей в селекте
+        Array.from(form.rolesList.options).forEach(opt => {
+            opt.selected = user.roles.some(role => role.name === opt.value);
+        });
+
+        const modal = new bootstrap.Modal(document.getElementById('editModal'));
+        modal.show();
+    }
+
+    // 5. Отправка обновленных данных (PUT)
+    document.getElementById('editForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const updatedUser = {
+            id: form.id.value,
+            username: form.username.value,
+            email: form.email.value,
+            password: form.password.value, // Если пустой, REST контроллер должен это обработать и не затирать старый
+            roles: getSelectedRoles(form.rolesList)
+        };
+
+        await fetch(API_URL, {
+            method: 'PUT',
+            headers: requestHeaders,
+            body: JSON.stringify(updatedUser)
+        });
+
+        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide(); // Закрываем модалку
+        loadTable(); // Перерисовываем таблицу
+    });
+
+    // 6. Заполнение и открытие модалки Delete
+    async function openDeleteModal(id) {
+        const response = await fetch(`${API_URL}/${id}`);
+        const user = await response.json();
+
+        const form = document.getElementById('deleteForm');
+        form.id.value = user.id;
+        form.idDisplay.value = user.id;
+        form.username.value = user.username;
+        form.email.value = user.email;
+
+        Array.from(form.rolesList.options).forEach(opt => {
+            opt.selected = user.roles.some(role => role.name === opt.value);
+        });
+
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+    }
+
+    // 7. Удаление пользователя (DELETE)
+    document.getElementById('deleteForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const id = e.target.id.value;
+
+        await fetch(`${API_URL}/${id}`, {
+            method: 'DELETE',
+            headers: requestHeaders
+        });
+
+        bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+        loadTable();
+    });
+
+    // Вспомогательная функция для получения выбранных ролей из <select>
+    function getSelectedRoles(selectElement) {
+        return Array.from(selectElement.selectedOptions).map(opt => {
+            // Отправляем объект Role. В зависимости от реализации контроллера,
+            // Spring обычно хватает поля name для маппинга или id.
+            return {
+                id: opt.value === 'ROLE_ADMIN' ? 1 : 2, // Подставьте реальные ID ролей из БД, если нужно
+                name: opt.value
+            };
+        });
+    }
+</script>
 </body>
 </html>
