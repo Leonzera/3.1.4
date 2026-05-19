@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${user.id == null ? 'Новый' : 'Редактировать'}">Форма</title>
+</head>
+<body>
+<h1 th:text="${user.id == null ? 'Новый пользователь' : 'Редактирование'}"></h1>
+
+<form th:action="@{/admin/save}" method="post">
+    <input type="hidden" th:field="*{user.id}">
+
+    <div>
+        <label>Логин: <input type="text" th:field="*{user.username}" required></label>
+    </div>
+    <div>
+        <label>Пароль: <input type="password" th:field="*{user.password}" required></label>
+    </div>
+    <div>
+        <label>Email: <input type="email" th:field="*{user.email}" required></label>
+    </div>
+
+
+    <!-- Выбор роли -->
+    <div>
+        <label>Роль:
+            <select name="roleName">
+                <option value="ROLE_USER">USER</option>
+                <option value="ROLE_ADMIN">ADMIN</option>
+            </select>
+        </label>
+    </div>
+
+    <button type="submit">Сохранить</button>
+    <a href="/admin">Отмена</a>
+</form>
+</body>
+</html>
